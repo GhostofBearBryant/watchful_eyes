@@ -29,13 +29,13 @@ nick_name = 'Bucky'
 # A 30 day ban for trolling would read as follows: ban 30 t
 # Permanent bans are input as 0.  So a perm ba for covid misinfo would be ban 0 c
 
-ban_macros = 			{ 	'c' : 'Covid Misinfo',
-							        'v' : 'Violent Content',
-							        'r' : 'Racism',
-							        't' : 'Trolling',
-							        's' : 'Spam',
-							        'm' : 'Misinformation'
-						      }
+ban_macros = 		{ 	'c' : 'Covid Misinfo',
+				'v' : 'Violent Content',
+				'r' : 'Racism',
+				't' : 'Trolling',
+				's' : 'Spam',
+				'm' : 'Misinformation'
+			}
 
 
 
