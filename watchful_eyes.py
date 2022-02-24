@@ -105,11 +105,11 @@ def check_comments(subreddit):
 										ban_note = ban_macros[ban_reason]
 										ban_message = '**'+ban_note+'**\n\n'+ban_header+comment_quote+ban_footer
 										reddit.subreddit(ban_sub).banned.add(
-																				f'{item.author}', 
-																				ban_reason=f'{ban_note} - {nick_name}', 
-																				ban_message=f'{ban_message}', 
-																				note=f'{item.permalink}'
-																				)										
+															f'{item.author}', 
+															ban_reason=f'{ban_note} - {nick_name}', 
+															ban_message=f'{ban_message}', 
+															note=f'{item.permalink}'
+															)										
 										
 										print(f"{mod_name} banned {item.author} permanently.")
 
