@@ -15,8 +15,13 @@ Permanent bans are input as 0 days.
 Table of ban reasons.
 
 'c' : 'Covid Misinfo',
+
 'v' : 'Violent Content',
+
 'r' : 'Racism',
+
 't' : 'Trolling',
+
 's' : 'Spam',
+
 'm' : 'Misinformation'
