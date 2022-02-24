@@ -129,12 +129,12 @@ def check_comments(subreddit):
 										ban_note = ban_macros[ban_reason]
 										ban_message = '**'+ban_note+'**\n\n'+ban_header+comment_quote+ban_footer
 										reddit.subreddit(ban_sub).banned.add(
-																				f'{item.author}', 
-																				ban_reason=f'{ban_note} - {nick_name}', 
-																				duration=ban_length, 
-																				ban_message=f'{ban_message}', 
-																				note=f'{item.permalink}'
-																				)
+															f'{item.author}', 
+															ban_reason=f'{ban_note} - {nick_name}', 
+															duration=ban_length, 
+															ban_message=f'{ban_message}', 
+															note=f'{item.permalink}'
+															)
 
 										print(f"{mod_name} banned {item.author} for {ban_duration} days.")
 										notes = pmtw.Usernotes(reddit, item.subreddit)
@@ -188,11 +188,11 @@ def check_submissions(subreddit):
 										ban_note = ban_macros[ban_reason]
 										ban_message = '**'+ban_note+'**\n\n'+ban_header+post_quote+ban_footer
 										reddit.subreddit(ban_sub).banned.add(
-																				f'{item.author}', 
-																				ban_reason=f'{ban_note} - {nick_name}', 
-																				ban_message=f'{ban_message}', 
-																				note=f'{item.permalink}'
-																				)
+															f'{item.author}', 
+															ban_reason=f'{ban_note} - {nick_name}', 
+															ban_message=f'{ban_message}', 
+															note=f'{item.permalink}'
+															)
 										
 										print(f"{mod_name} banned {item.author} permanently.")
 										notes = pmtw.Usernotes(reddit, item.subreddit)
@@ -209,12 +209,12 @@ def check_submissions(subreddit):
 										ban_note = ban_macros[ban_reason]
 										ban_message = '**'+ban_note+'**\n\n'+ban_header+post_quote+ban_footer
 										reddit.subreddit(ban_sub).banned.add(
-																				f'{item.author}', 
-																				ban_reason=f'{ban_note} - {nick_name}', 
-																				duration=ban_length, 
-																				ban_message=f'{ban_message}', 
-																				note=f'{item.permalink}'
-																				)
+															f'{item.author}', 
+															ban_reason=f'{ban_note} - {nick_name}', 
+															duration=ban_length, 
+															ban_message=f'{ban_message}', 
+															note=f'{item.permalink}'
+															)
 										
 										print(f"{mod_name} banned {item.author} for {ban_duration} days.")
 										notes = pmtw.Usernotes(reddit, item.subreddit)
