@@ -21,6 +21,7 @@ sub_name = config.sub_name
 sleep_seconds = 30
 
 # Sub to log bans and admin actions.  Admin removals and bans by this account will be logged in the sub.
+# Create a private sub for logging items or use a mod backroom sub.
 submit_sub = "YOUR_SUBREDDIT"
 
 
