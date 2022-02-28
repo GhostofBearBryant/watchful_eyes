@@ -55,4 +55,4 @@ Once you hit return the bot will do the following actions:
 - Send the user a pre-formatted message
 - leave a toolbox usernote with ban details
 
-[See photo gallery for examples of reporting syntax and ban messages sent to the user.(https://imgur.com/a/jcU7RLD)
+See photo gallery for examples of reporting syntax and ban messages sent to the user: https://imgur.com/a/jcU7RLD
