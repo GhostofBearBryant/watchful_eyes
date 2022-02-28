@@ -1,9 +1,11 @@
 # watchful_eyes
 Watchful Eyes is a Reddit Ban Bot
 
-First of all I'm going to assume that if you're here, you already know how to install modules and run a bot. 
+First of all I'm going to assume that if you're here, you already know how to install modules and run a bot.  Your login creds should be in a separate file named config.py.  
 
 **Requirements**
+-Install PMTW: https://pypi.org/project/pmtw/
+-Install Fast Report: https://github.com/paradox460/userscripts/tree/master/fast-report
 
 - Enable Free form reports on your subreddit.  The bot uses free-form reports or it won't work.
 - Fast Report userscript: https://github.com/paradox460/userscripts/tree/master/fast-report
