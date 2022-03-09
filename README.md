@@ -49,6 +49,10 @@ Table of ban reasons.
 
 'd' : 'Dehumanizing Speech'
 
+'n' : 'Nazi
+
+'cs' : Comment Spam
+
 
 Once you hit return the bot will do the following actions:
 - Remove and lock the reported item
