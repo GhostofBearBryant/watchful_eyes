@@ -17,7 +17,9 @@ import re
 
 # Define ths sub to work on.  Usernotes will not work accurately on r/mod.  Each sub must be listed individually.
 # Sub names are defined in the config file. 
-sub_name = 'marchagainstnazis+news+politicalhumor+questions+ask+kitchenconfidential+chattanooga+unresolvedmysteries'
+sub_name = 'politicalhumor+news+marchagainstnazis'
+toxic_subs = "shitredditsays+shitpoliticssays+conservative+declineintocensorship+watchredditdie+subredditdrama+anarcho_capitalism+banned+genzedong"
+
 
 
 # Number of seconds to sleep between scans
@@ -25,6 +27,10 @@ sleep_seconds = 30
 
 # Sub to log bans and admin actions.  Admin removals and bans by this account will be logged in the sub.
 submit_sub = "submanagerbot"
+
+# Set up a time period for the last pass of the bot for checking timestamps on items.  
+right_now = time.time()
+last_pass = (right_now  - 45)
 
 
 # Define your ban notes here.  These are for the ban note in the upper right corner of modmail in red.
@@ -43,10 +49,8 @@ ban_macros = 			{ 	'c' : 'Covid Misinfo',
 							'n' : 'Nazi',
 							'b' : 'Brigading',
 							'h' : 'Hate Speech',
-							'cs': 'Comment Spam'
+							'a' : 'Antagonizing/Rude'						
 						}
-
-
 
 ###  Defines the reddit login function
 ### A refresh token is used so you can maintain 2FA on the bot account.
@@ -63,7 +67,7 @@ def reddit_login():
 
 	except Exception as e:
 		print(f'\t### ERROR - Could not login.\n\t{e}')
-	print(f'Logged in as: {reddit.user.me()}')
+	print(f'Logged in as: {reddit.user.me()}\n\n')
 	return reddit
 
 
@@ -71,10 +75,14 @@ def reddit_login():
 
 def ban_on_phrase(subreddit):
 	try: 
+		
+		start_time = datetime.fromtimestamp(right_now).strftime('%a, %b %d, %Y at %H:%M:%S')
 		ban_phrase = 'ban'
 		###  Process Comments
 		# Prints the ban syntax to the terminal so you can easily reference.
-		print('\nBan syntax:\nban <days> [macro]\n<0> days for perm\n\nReport reasons:\n[c] Covid\n[cs] Comment Spam\n[v] Violence\n[s] Spam\n[r] Racism/Bigotry\n[t] Trolling\n[m] Misinformation\n[d] Dehumanizing speech\n[n] Nazi\n[b] Brigading\n[h] Hate Speech\n\n')
+		print('~~~~~~~~~~~~~~')
+		print('Starting up...')
+		print('Ban syntax:\nban <days> [macro]\n<0> days for perm\n\nReport reasons:\n[c] Covid\n[a] Rude/Antagonizing\n[v] Violence\n[s] Spam\n[r] Racism/Bigotry\n[t] Trolling\n[m] Misinformation\n[d] Dehumanizing speech\n[n] Nazi\n[b] Brigading\n[h] Hate Speech\n\n')
 		for item in subreddit.mod.modqueue(limit=None):
 				
 			# T1 is reddit's code for comment objects.
@@ -235,6 +243,9 @@ def ban_on_phrase(subreddit):
 										notes.add_note(n)
 										
 								
+	except KeyboardInterrupt:
+			print('\nShutting down....')
+			sys.exit(1)
 	except Exception as e:
 			print(f'\t### ERROR - Something went wrong processing the modqueue.\n\t{e}')
 			traceback.print_exc()					
@@ -242,8 +253,8 @@ def ban_on_phrase(subreddit):
 
 #  This functions logs bans and admin level actions to a private log sub.  The list of monitored subs is smaller because other bots are logging for other subs.
 def check_mod_log(subreddit):
-	now = time.time()
-	last_pass = (now  - 45)
+	right_now = time.time()
+	last_pass = (right_now  - 45)
 		
 	try:
 		reddit.validate_on_submit = True
@@ -257,7 +268,7 @@ def check_mod_log(subreddit):
 				reddit.subreddit(submit_sub).submit(admin_log_post_title, log_post_selftext)
 				print(f"Action: >{log.action}< in r/{log.subreddit} was posted in r/submanagerbot.")
 
-		for log in reddit.subreddit('news+politicalhumor+marchagainstnazis').mod.log(limit = None):
+		for log in reddit.subreddit(sub_name).mod.log(limit = None):
 			if log.created_utc <= last_pass:
 				break
 
@@ -266,18 +277,22 @@ def check_mod_log(subreddit):
 				log_description = log.description.rsplit(' ',1)
 				ban_reason_raw = log.description.split('-',1)
 				ban_reason = ban_reason_raw[0]
-				description = log_description[1]
-				date_stamp = datetime.fromtimestamp(int(log.created_utc)).strftime('%m/%d/%y')
-				log_post_selftext = f"Sub: r/{log.subreddit}\n\nAction: {log.action}\n\nMod: {log.mod}\n\nWhen: {time_stamp}\n\n---\n\nTitle: {log.target_title}\n\nTarget Author: u/{log.target_author}\n\nBody: {log.target_body}\n\nDetails: {log.details}\n\nLog Description: {log.description}\n\nPermalink: {description}\n\n[*Subreddit modlog*](http://reddit.com/r/{log.subreddit}/about/log)\n\n" #^(Links to ban items are not functional, view mod log instead.)"
-				log_post_title = f"User u/{log.target_author} banned by u/{log.mod} in r/{log.subreddit} on {date_stamp}. Note: {ban_reason}"
-				reddit.subreddit(submit_sub).submit(log_post_title, log_post_selftext)
-				print(f"Action: >{log.action}< in r/{log.subreddit} was posted in r/submanagerbot.")
+				if ban_reason is not None:
+					description = log_description[1]
+					date_stamp = datetime.fromtimestamp(int(log.created_utc)).strftime('%m/%d/%y')
+					log_post_selftext = f"Sub: r/{log.subreddit}\n\nAction: {log.action}\n\nMod: {log.mod}\n\nWhen: {time_stamp}\n\n---\n\nTitle: {log.target_title}\n\nTarget Author: u/{log.target_author}\n\nBody: {log.target_body}\n\nDetails: {log.details}\n\nLog Description: {log.description}\n\nPermalink: {description}\n\n[*Subreddit modlog*](http://reddit.com/r/{log.subreddit}/about/log)\n\n" #^(Links to ban items are not functional, view mod log instead.)"
+					log_post_title = f"User u/{log.target_author} banned by u/{log.mod} in r/{log.subreddit} on {date_stamp}. Note: {ban_reason}"
+					reddit.subreddit(submit_sub).submit(log_post_title, log_post_selftext)
+					print(f"Action: >{log.action}< in r/{log.subreddit} was posted in r/submanagerbot.")
 			else:
 				continue
 					        
+	except KeyboardInterrupt:
+			print('\nShutting down....')
+			sys.exit(1)
 	except Exception as e:
 		print(f'\t### ERROR - Could not process mod log.\n\t{e}')
-
+		traceback.print_exc()
 
 
 # Check the mod log for threads removed in the past day and log their fullnames for removing reported comments. 
@@ -285,11 +300,11 @@ def report_remove_gather(subreddit):
 	links_list = []
 	# Saves a copy as a text file in case it needs to be referenced. 
 	with open("/home/pi/bots/news/links_list.txt", "w+") as f:
-		print("gathering links....")
-		now = time.time()
-		last_pass = (now - 60*60*24)
-		for log_item in reddit.subreddit(sub_name).mod.log(limit = None):
-			if log_item.created_utc >= last_pass:			
+		print("Compiling list of removed threads....")
+		#right_now = time.time()
+		removal_epoch = (right_now - 60*60*24)
+		for log_item in reddit.subreddit(sub_name).mod.log(limit = 1000):
+			if log_item.created_utc >= removal_epoch:			
 				if log_item.action == 'removelink':
 					if log_item.mod != 'AutoModerator':						
 						logged_item = log_item.target_fullname
@@ -298,51 +313,172 @@ def report_remove_gather(subreddit):
 		f.write(f"{links_list}")	
 		return links_list				
 	f.close()
-	print("Done gathering..")
+	print("Done listing removed threads...")
+
 
 
 # Check for reported comments in removed threads and remove them. 
 def report_cleanser(links_list):
-	print("Working on links....")
-	if len(links_list) > 0:
-			print('Ok. Checking reports on removed posts...')
-			for item in reddit.subreddit(sub_name).mod.reports(limit = None):
-				if item.fullname.startswith("t1_"):
-					if item.link_id in links_list:
-						item.mod.remove()
-						print(f'REMOVE ITEM: r/{item.subreddit} {item.permalink}')
-	else:
-		print('None found')
-	print("Finished removing any reported comments in removed threads....")
-	print('====================================')
-	print('Awaiting mod reports...')
+	try:
+		print("Looking for reports on removed threads....")
+		if len(links_list) > 0:
+				print('Okay. Checking reports on removed posts...')
+				for item in reddit.subreddit(sub_name).mod.reports(limit = 1000):
+					if item.fullname.startswith("t1_"):
+						if item.link_id in links_list:
+							item.mod.remove()
+							print(f'REMOVE ITEM: r/{item.subreddit} {item.permalink}')
+		else:
+			print('None found')
+		print("Done removing any reported comments in removed threads....")
+	except KeyboardInterrupt:
+			print('\nShutting down....')
+			sys.exit(1)
+	except Exception as e:
+		print(f'\t### ERROR - Too many reports in queue.\n\t{e}')
+		traceback.print_exc()	
 
 			
 ## This function checks the modqueue and implements various custom micro conditions to reduce workload.
-def custom_micro_conditions(subreddit):
+def micro_conditions(subreddit):
+	print('Checking for reported AutoModerator comments...')
 	try:
 		for item in reddit.subreddit(sub_name).mod.reports(limit = None):
-			
-			#  Approve any reported comments by automoderator. 
-			if item.author_fullname == 't2_6l4z3':
-				item.mod.approve()
-				print('Approved AutoMod comment')
 			
 			# This check removes reported comments with 'tard' phrases in them.
 			if item.fullname.startswith("t1_"):
 				report_body = item.body
-				ableism_search = re.search(r'(?i)(fuck|trump|vaxx|lib|re|conserva)tards?', report_body)
+				ableism_search = re.match(r'(?i)(fuck|trump|vaxx|lib|re|conserva)tards?', report_body)
+				
 				if not ableism_search is None:
+					#if ableism_search in report_body:
 					item.mod.remove()
-					print(f"REMOVE ITEM {item.fullname}  {item.permalink}")
+					print(f"REMOVE ITEM: {item.fullname}  {item.permalink}")
 
+			#  Approve any reported comments by automoderator. 
+			if item.author == 'AutoModerator':
+			#if item.author_fullname == 't2_6l4z3':
+				item.mod.approve()
+				print('Approved AutoMod comment')
+			
+	except KeyboardInterrupt:
+			print('\nShutting down....')
+			sys.exit(1)
 	except Exception as e:
-		print('\t\n### ERROR - Could not approve automod')
+		print("\t\n### ERROR - You\'re a terrible coder.")
 		traceback.print_exc()
 
 
+def meta_sub_check(toxic_subs):
+
+	try:
+		for submission in reddit.subreddit(toxic_subs).new(limit = 100):
+			time_stamp = datetime.fromtimestamp(int(submission.created_utc)).strftime('%a, %b %d, %Y at %H:%M:%S')
+			linked_post = submission.url
+			linked_title = submission.title
+			post_author = submission.author.name
+			news_post = re.search(r'r/news', linked_post)
+			news_title = re.search(r'r/news', linked_title)
+			ban_check = any(reddit.subreddit(submit_sub).banned(redditor=f'{post_author}'))
+			if submission.created_utc <= last_pass:
+				break	
+
+			if ban_check:
+				user_banned = True
+				banned_date = datetime.fromtimestamp(ban_check.date).strftime('%a, %b %d, %Y at %H:%M:%S')
+				ban_note = ban_check.note
+			else:
+				user_banned = False
+				ban_note = None
+
+			if not news_post is None:
+				reddit.subreddit(submit_sub).message(
+					f"New post in r/{submission.subreddit} referencing r/News.", 
+					f"FYI There's a new post in r/{submission.subreddit}.\n\n---\n\nPost Title: [{submission.title}](https://reddit.com{submission.permalink})\n\nPost author: u/{submission.author}\n\nIs post author banned?: {user_banned}\n\nBan note: {ban_note}\n\nOriginal item being linked: {submission.url}"
+					)
+			
+			if not news_title is None: 
+				reddit.subreddit(submit_sub).message(
+					f"New post in r/{submission.subreddit} referencing r/News.", 
+					f"FYI There's a new post in r/{submission.subreddit}.\n\n---\n\nPost Title: [{submission.title}](https://reddit.com{submission.permalink})\n\nPost author: u/{submission.author}\n\nIs post author banned?: {user_banned}\n\nBan note: {ban_note}\n\nOriginal item being linked: {submission.url}"
+					)      
+
+	except KeyboardInterrupt:
+			print('\nShutting down....')
+			sys.exit(1)
+
+	except Exception as e:
+		print(f'\t### ERROR - Could not check meta subs for some reason...\n\t{e}')
+		traceback.print_exc()
+
+
+
+def parse_modmail(subreddit):
+	print('Checking modmail notifications...')
+	try:
+		for conversation in reddit.subreddit(sub_name).modmail.conversations(state='all'):
+			archive = None
+			#  Comments
+			if len(conversation.authors) == 1 and \
+					conversation.authors[0].name in {"AutoModerator"} and \
+					len(conversation.messages) == 1 and 'comment' in conversation.subject:
+
+
+				links = re.findall(r'(?:reddit.com/r/\w*/comments/\w*/\w*/)(\w*)', conversation.messages[0].body_markdown)	
+				if len(links) == 1:
+					comment = reddit.comment(links[0])
+					if comment.body == "[deleted]" or comment.author == "[deleted]":
+						archive = "Deleted by user"
+					if comment.removed:
+						banned_time = datetime.fromtimestamp(comment.banned_at_utc).strftime('%a, %b %d, %Y at %H:%M:%S')
+						archive = f"Removed by u/{comment.banned_by}.\n\nWhen: {banned_time}"
+					if comment.banned_by == 'AutoModerator':
+						banned_time = datetime.fromtimestamp(comment.banned_at_utc).strftime('%a, %b %d, %Y at %H:%M:%S')
+						archive = f"Removed by u/{comment.banned_by}.\n\nWhen: {banned_time}"
+					if comment.locked:
+						archive = f"Comment was locked."
+					if comment.approved:
+						approved_time = datetime.fromtimestamp(comment.approved_at_utc).strftime('%a, %b %d, %Y at %H:%M:%S')
+						archive = f"Approved by u/{comment.approved_by}.\n\nWhen: {approved_time}"				
+			#  Submissions
+			if len(conversation.authors) == 1 and \
+					conversation.authors[0].name in {"AutoModerator"} and \
+					len(conversation.messages) == 1 and 'submission' in conversation.messages[0].body_markdown:   #conversation.subject:
+				links = re.findall(r'(?:reddit.com/r/\w*/comments/)(\w*)', conversation.messages[0].body_markdown)
+				if len(links) == 1:
+					submission = reddit.submission(links[0])
+					if submission.selftext == "[deleted]" or submission.author == "[deleted]":
+						archive = "Deleted by user."
+					if submission.removed:
+						banned_time = datetime.fromtimestamp(submission.banned_at_utc).strftime('%a, %b %d, %Y at %H:%M:%S')
+						archive = f"Removed by u/{submission.banned_by}.\n\nWhen: {banned_time}"
+					if submission.banned_by == 'AutoModerator':
+						banned_time = datetime.fromtimestamp(submission.banned_at_utc).strftime('%a, %b %d, %Y at %H:%M:%S')
+						archive = f"Removed by u/{submission.banned_by}.\n\nWhen: {banned_time}"
+					if submission.locked:
+						archive = f"Submission was locked."
+					if submission.approved:
+						approved_time = datetime.fromtimestamp(submission.approved_at_utc).strftime('%a, %b %d, %Y at %H:%M:%S')
+						archive = f"Approved by u/{submission.approved_by}.\n\nWhen: {approved_time}"
+			if archive is not None:
+				print(f"Archiving automod notification: {conversation.id}")
+				conversation.reply(archive, internal = True)
+				conversation.archive()        
+	except KeyboardInterrupt:
+			print('\nShutting down....')
+			sys.exit(1)
+
+	except Exception as e:
+		print("\t\n### ERROR - Modmail notifications could not be archived.")
+		traceback.print_exc()
+	print('Okay, done archiving modmail...')
+	#print('====================================')
+	print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+	print('Pausing 30 seconds for new mod reports...\n')
+
+
 ##############################
-# Bot mechanism starts here	
+# Bot starts here	
 
 if __name__ == "__main__":
 
@@ -362,15 +498,16 @@ if __name__ == "__main__":
 
 		try:
 
-			ban_comments = ban_on_phrase(subreddit)
-			check_log = check_mod_log(subreddit)
-			approve_comments = custom_microconditions(subreddit)
+			ban_on_phrase(subreddit)
+			micro_conditions(subreddit)
 			links_list = report_remove_gather(subreddit)
-			check_reports = report_cleanser(links_list)
-			
+			report_cleanser(links_list)
+			check_mod_log(subreddit)
+			parse_modmail(subreddit)
+
 						
 		except KeyboardInterrupt:
-			print('Shutting down....')
+			print('\nShutting down....')
 			sys.exit(1)
 
 		except Exception as e:
@@ -379,6 +516,4 @@ if __name__ == "__main__":
 
 		# Loop every X seconds, defined above (currently 30 seconds)
 		time.sleep(sleep_seconds) 
-
-
 
